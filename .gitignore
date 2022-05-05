@@ -1,2 +1,4 @@
-swarm-envs.sh
-/secrets
+utilities/swarm-envs.sh
+utilities/secrets
+
+*.yml
