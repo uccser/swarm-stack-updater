@@ -1,7 +1,13 @@
 #!/bin/bash
 
-DEV=false
+set -e
 
+# Remove prevous artifacts
+rm -rf docker-compose.prod.yml
+
+# Currently using arugments passed into the check script but this could easily 
+# be replaced by environment varibles
+DEV=false
 VALID_ARGS=$(getopt -o du:r: --long dev,url:,repository: -- "$@")
 if [[ $? -ne 0 ]]; then
     exit 1;
@@ -43,8 +49,21 @@ if [ -z ${REPO+x} ];
 fi
 echo "Selected Repository is: $REPO"
 
-RESPONSE=$(wget ${URL}status -q -O -)
 
+download_files () {
+    # Function to download the respective composefiles when updating. 
+    if $DEV;
+        then
+            file_url="https://raw.githubusercontent.com/uccser/${REPO}/develop/docker-compose.prod.yml"
+        else
+            file_url="https://raw.githubusercontent.com/uccser/${REPO}/master/docker-compose.prod.yml"
+    fi
+
+    # Get compose file contents and output to file
+    wget ${file_url} -q -O docker-compose.prod.yml
+}
+
+RESPONSE=$(wget ${URL}status -q -O -)
 if [ -z ${RESPONSE+x} ];
     then
         echo "Unable to reach url (${URL}). Exiting..."
@@ -64,8 +83,7 @@ if $DEV;
         if [ "$REPO_SHA" != "$GIT_SHA" ];
             then
                 echo "Update"
-            else
-                echo "Dont Update"
+                download_files
         fi
     else
         RESPONSE=$(wget https://api.github.com/repos/uccser/${REPO}/releases/latest -q -O -)
@@ -74,8 +92,13 @@ if $DEV;
         if [ "$VERSION_NUMBER" != "$VERSION_TAG" ];
             then
                 echo "Update"
-            else
-                echo "Dont Update"
+                download_files
         fi
+fi
+
+if [ -f "docker-compose.prod.yml" ];
+    then
+        # Run docker command to deploy the stack
+        docker stack deploy -c docker-compose.prod.yml test
 fi
 
