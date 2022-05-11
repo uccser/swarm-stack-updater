@@ -2,37 +2,50 @@
 
 set -e
 
+checkEnvVariableExists() {
+    if [ -z ${!1} ]
+    then
+        echo "ERROR: Define $1 environment variable."
+        exit 1
+    else
+        echo "INFO: $1 environment variable found."
+    fi
+}
+
+download_files () {
+    # Function to download the respective composefiles when updating. 
+    if "$1";
+        then
+            file_url="https://raw.githubusercontent.com/uccser/$2/develop/docker-compose.prod.yml"
+        else
+            file_url="https://raw.githubusercontent.com/uccser/$2/master/docker-compose.prod.yml"
+    fi
+
+    # Get compose file contents and output to file
+    wget ${file_url} -q -O docker-compose.prod.yml
+}
+
+
+DEV=false
+
 # Remove prevous artifacts
 rm -rf docker-compose.prod.yml
 
 # Currently using arugments passed into the check script but this could easily 
 # be replaced by environment varibles
-DEV=false
-VALID_ARGS=$(getopt -o du:r: --long dev,url:,repository: -- "$@")
-if [[ $? -ne 0 ]]; then
-    exit 1;
-fi
+# Check inputs
+while getopts 'du:r:e:' opt; do
+    case "$opt" in
+        d) DEV=true     ;;
+        u) URL=$OPTARG  ;;
+        r) REPO=$OPTARG ;;
+        e) ENVS=$OPTARG ;;
+    esac
+done
 
-# Check passed arguments
-eval set -- "$VALID_ARGS"
-while [ : ]; do
-    case "$1" in 
-    -d | --dev)
-        DEV=true
-        shift
-        ;;
-    -u | --url)
-        URL=$2
-        shift 2
-        ;;
-    -r | --repository)
-        REPO=$2
-        shift 2
-        ;;
-    --) shift; 
-        break 
-        ;;
-  esac
+# Check that the passed in environment varibles exist (This may not be needed?)
+for env in $ENVS; do
+    checkEnvVariableExists "$env"
 done
 
 if [ -z ${URL+x} ];
@@ -50,31 +63,19 @@ fi
 echo "Selected Repository is: $REPO"
 
 
-download_files () {
-    # Function to download the respective composefiles when updating. 
-    if $DEV;
-        then
-            file_url="https://raw.githubusercontent.com/uccser/${REPO}/develop/docker-compose.prod.yml"
-        else
-            file_url="https://raw.githubusercontent.com/uccser/${REPO}/master/docker-compose.prod.yml"
-    fi
-
-    # Get compose file contents and output to file
-    wget ${file_url} -q -O docker-compose.prod.yml
-}
 
 RESPONSE=$(wget ${URL}status -q -O -)
 if [ -z ${RESPONSE+x} ];
     then
         echo "Unable to reach url (${URL}). Exiting..."
-        exit;
+        exit 1;
 fi
 
 # Using a bash json interpreter
 VERSION_NUMBER=$(jq -r '.VERSION_NUMBER' <<< "$RESPONSE")
 GIT_SHA=$(jq -r '.GIT_SHA' <<< "$RESPONSE")
 
-if $DEV; 
+if "$DEV"; 
     then
         RESPONSE=$(wget https://api.github.com/repos/uccser/${REPO}/commits/develop -q -O -)
         REPO_SHA=$(jq -r '.sha' <<< "$RESPONSE")
@@ -83,7 +84,7 @@ if $DEV;
         if [ "$REPO_SHA" != "$GIT_SHA" ];
             then
                 echo "Update"
-                download_files
+                download_files "$DEV" "$REPO"
         fi
     else
         RESPONSE=$(wget https://api.github.com/repos/uccser/${REPO}/releases/latest -q -O -)
@@ -92,13 +93,21 @@ if $DEV;
         if [ "$VERSION_NUMBER" != "$VERSION_TAG" ];
             then
                 echo "Update"
-                download_files
+                download_files "$DEV" "$REPO"
         fi
 fi
 
 if [ -f "docker-compose.prod.yml" ];
     then
         # Run docker command to deploy the stack
-        docker stack deploy -c docker-compose.prod.yml test
+        docker stack deploy -c docker-compose.prod.yml "$REPO"
+        
+        # Call docker stack wait
+        ./docker-stack-wait.sh "$REPO"
+
+        # Docker jobs / 
+        
+
+
 fi
 
