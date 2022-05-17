@@ -3,20 +3,21 @@
 set -e
 
 # Install jq JSON tool if not found (if this was a docker container this could be pre-installed)
-if ! command -v jq &> /dev/null; then
-    echo "jq could not be found"
-    echo "Installing jq..."
-    sudo apt install jq
-    echo "Done"
+if ! command -v jq &> /dev/null; 
+    then
+        echo "jq could not be found"
+        echo "Installing jq..."
+        sudo apt install jq
+        echo "Done"
 fi
 
 checkEnvVariableExists() {
-    if [ -z ${!1} ]
-    then
-        echo "ERROR: Define $1 environment variable."
-        exit 1
-    else
-        echo "INFO: $1 environment variable found."
+    if [ -z ${!1} ]; 
+        then
+            echo "ERROR: Define $1 environment variable."
+            exit 1
+        else
+            echo "INFO: $1 environment variable found."
     fi
 }
 
@@ -107,9 +108,9 @@ fi
 if [ -f "docker-compose.prod.yml" ];
     then
         # Identify environment varibles in file (automatically)
-        ENVS=$(grep '${[A-Z_]*}' docker-compose.prod.yml | sed 's/.*{\([^]]*\)}.*/\1/g')
-        for env in "$ENVS"; do
-            checkEnvVariableExists "$env"
+        ENVS=$(grep '${[A-Z_]*}' docker-compose.prod.yml | awk -vRS="}" -vFS="{" '{print $2}')
+        for env in $ENVS; do
+            checkEnvVariableExists $env
         done 
 
         # Run docker command to deploy the stack
