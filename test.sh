@@ -1,1 +1,1 @@
-./check.sh -d -u https://www.csfieldguide.org.nz/ -r cs-field-guide -e "CS_FIELD_GUIDE_IMAGE_TAG CS_FIELD_GUIDE_ROUTER_RULE"
+./check.sh -u https://www.csfieldguide.org.nz/ -r cs-field-guide -e "CS_FIELD_GUIDE_IMAGE_TAG CS_FIELD_GUIDE_ROUTER_RULE"

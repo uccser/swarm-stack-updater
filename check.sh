@@ -2,6 +2,14 @@
 
 set -e
 
+# Install jq JSON tool if not found (if this was a docker container this could be pre-installed)
+if ! command -v jq &> /dev/null; then
+    echo "jq could not be found"
+    echo "Installing jq..."
+    sudo apt install jq
+    echo "Done"
+fi
+
 checkEnvVariableExists() {
     if [ -z ${!1} ]
     then
@@ -63,7 +71,6 @@ fi
 echo "Selected Repository is: $REPO"
 
 
-
 RESPONSE=$(wget ${URL}status -q -O -)
 if [ -z ${RESPONSE+x} ];
     then
@@ -85,6 +92,9 @@ if "$DEV";
             then
                 echo "Update"
                 download_files "$DEV" "$REPO"
+            else
+                echo "Production ${URL} is already up to date"
+                exit 0
         fi
     else
         RESPONSE=$(wget https://api.github.com/repos/uccser/${REPO}/releases/latest -q -O -)
@@ -94,6 +104,9 @@ if "$DEV";
             then
                 echo "Update"
                 download_files "$DEV" "$REPO"
+            else
+                echo "Development ${URL} is already up to date"
+                exit 0
         fi
 fi
 
@@ -102,12 +115,11 @@ if [ -f "docker-compose.prod.yml" ];
         # Run docker command to deploy the stack
         docker stack deploy -c docker-compose.prod.yml "$REPO"
         
-        # Call docker stack wait
-        ./docker-stack-wait.sh "$REPO"
+        # Call docker stack wait this is supplied by 
+        docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock sudobmitch/docker-stack-wait "$REPO"
 
-        # Docker jobs / 
+        # Docker jobs 
+
         
-
-
 fi
 
