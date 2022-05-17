@@ -2,15 +2,6 @@
 
 set -e
 
-# Install jq JSON tool if not found (if this was a docker container this could be pre-installed)
-if ! command -v jq &> /dev/null; 
-    then
-        echo "jq could not be found"
-        echo "Installing jq..."
-        sudo apt install jq
-        echo "Done"
-fi
-
 checkEnvVariableExists() {
     if [ -z ${!1} ]; 
         then
@@ -34,10 +25,21 @@ download_files () {
     wget ${file_url} -q -O docker-compose.prod.yml
 }
 
+# Install jq JSON tool if not found (if this was a docker container this could be pre-installed)
+if ! command -v jq &> /dev/null; 
+    then
+        echo "jq could not be found"
+        echo "Installing jq..."
+        sudo apt install jq
+        echo "Done"
+fi
+
+
 DEV=false
 
 # Remove prevous artifacts
 rm -rf docker-compose.prod.yml
+
 
 # Currently using arugments passed into the check script but this could easily 
 # be replaced by environment varibles
@@ -108,19 +110,36 @@ fi
 if [ -f "docker-compose.prod.yml" ];
     then
         # Identify environment varibles in file (automatically)
-        ENVS=$(grep '${[A-Z_]*}' docker-compose.prod.yml | awk -vRS="}" -vFS="{" '{print $2}')
-        for env in $ENVS; do
-            checkEnvVariableExists $env
+        envs=$(grep '${[A-Z_]*}' docker-compose.prod.yml | awk -vRS="}" -vFS="{" '{print $2}')
+        for env in $envs; do
+            checkEnvVariableExists "$env"
         done 
 
         # Run docker command to deploy the stack
         docker stack deploy -c docker-compose.prod.yml "$REPO"
-        
-        # Call docker stack wait this is supplied by 
-        docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock sudobmitch/docker-stack-wait "$REPO"
 
-        # Docker jobs 
+        # Find and run all tasks that have deployed (automatically)
+        tasks=$(docker service ls --filter name=${REPO}_task --format "{{.Name}}")
+        for task in $tasks; do
+            docker service scale "$task"=1 -d
+        done
 
-        
+        # Wait for all tasks to finish running then remove the services once tasks are done ie in shutdown state
+        tasks_done=false
+        until "$tasks_done"; do
+            for task in $tasks; do
+                if [ `docker service ps --format "{{.DesiredState}}" ${task}` = "Shutdown" ];
+                    then
+                        tasks_done=true
+                    else
+                        tasks_done=false
+                fi
+            done
+            sleep 0.2
+        done
+
+        for task in $tasks; do
+            docker service rm "$task" -d
+        done
 fi
 
