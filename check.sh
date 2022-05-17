@@ -33,7 +33,6 @@ download_files () {
     wget ${file_url} -q -O docker-compose.prod.yml
 }
 
-
 DEV=false
 
 # Remove prevous artifacts
@@ -42,19 +41,14 @@ rm -rf docker-compose.prod.yml
 # Currently using arugments passed into the check script but this could easily 
 # be replaced by environment varibles
 # Check inputs
-while getopts 'du:r:e:' opt; do
+while getopts 'du:r:' opt; do
     case "$opt" in
         d) DEV=true     ;;
         u) URL=$OPTARG  ;;
         r) REPO=$OPTARG ;;
-        e) ENVS=$OPTARG ;;
     esac
 done
 
-# Check that the passed in environment varibles exist (This may not be needed?)
-for env in $ENVS; do
-    checkEnvVariableExists "$env"
-done
 
 if [ -z ${URL+x} ];
     then
@@ -112,6 +106,12 @@ fi
 
 if [ -f "docker-compose.prod.yml" ];
     then
+        # Identify environment varibles in file (automatically)
+        ENVS=$(grep '${[A-Z_]*}' docker-compose.prod.yml | sed 's/.*{\([^]]*\)}.*/\1/g')
+        for env in "$ENVS"; do
+            checkEnvVariableExists "$env"
+        done 
+
         # Run docker command to deploy the stack
         docker stack deploy -c docker-compose.prod.yml "$REPO"
         
