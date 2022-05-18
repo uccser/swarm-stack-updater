@@ -118,6 +118,8 @@ if [ -f "docker-compose.prod.yml" ];
         # Run docker command to deploy the stack
         docker stack deploy -c docker-compose.prod.yml "$REPO"
 
+        docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock sudobmitch/docker-stack-wait "$REPO"
+
         # Find and run all tasks that have deployed (automatically)
         tasks=$(docker service ls --filter name=${REPO}_task --format "{{.Name}}")
         for task in $tasks; do
@@ -138,8 +140,9 @@ if [ -f "docker-compose.prod.yml" ];
             sleep 0.2
         done
 
+        # Scale back the tasks once they have been run
         for task in $tasks; do
-            docker service rm "$task" -d
+            docker service scale "$task"=0 -d
         done
 fi
 
