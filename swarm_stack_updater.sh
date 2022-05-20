@@ -48,15 +48,12 @@ update_stack () {
             echo "No website url provided. Exiting..."
             exit 1;
     fi
-    echo "Selected Url is: $URL"
 
     if [ -z ${REPO+x} ];
         then
             echo "No repoistory provided. Exiting..."
             exit 1;
     fi
-    echo "Selected Repository is: $REPO"
-
 
     RESPONSE=$(wget ${URL}status -q -O -)
     if [ -z ${RESPONSE+x} ];
@@ -71,27 +68,27 @@ update_stack () {
 
     if "${DEV}"; 
         then
-            RESPONSE=$(wget https://api.github.com/repos/uccser/${REPO}/commits/develop -q -O -)
+            RESPONSE=$(wget https://api.github.com/repos/${ORG}/${REPO}/commits/develop -q -O -)
             REPO_SHA=$(jq -r -n --argjson data "${RESPONSE}" '$data.sha')
             REPO_SHA=${REPO_SHA::${#GIT_SHA}}
             if [ "$REPO_SHA" != "$GIT_SHA" ];
                 then
-                    echo "Update"
+                    echo "Updating stack $STACK_NAME"
                     download_files "$DEV" "$ORG" "$REPO"
                 else
-                    echo "Development: ${URL} is already up to date"
+                    echo "Development: $STACK_NAME is already up to date"
                     exit 0
             fi
         else
-            RESPONSE=$(wget https://api.github.com/repos/uccser/${REPO}/releases/latest -q -O -)
+            RESPONSE=$(wget https://api.github.com/repos/${ORG}/${REPO}/releases/latest -q -O -)
             VERSION_TAG=$(jq -r -n --argjson data "${RESPONSE}" '$data.name')
 
             if [ "$VERSION_NUMBER" != "$VERSION_TAG" ];
                 then
-                    echo "Update"
+                    echo "Updating stack $STACK_NAME"
                     download_files "$DEV" "$ORG" "$REPO"
                 else
-                    echo "Production: ${URL} is already up to date"
+                    echo "Production: $STACK_NAME is already up to date"
                     exit 0
             fi
     fi
@@ -105,14 +102,13 @@ update_stack () {
                 checkEnvVariableExists "$env"
             done 
 
-        
             # Run docker command to deploy the stack
-            docker stack deploy -c docker-compose.prod.yml "$REPO"
+            docker stack deploy -c docker-compose.prod.yml "$STACK_NAME"
 
-            docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock sudobmitch/docker-stack-wait "$REPO"
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock sudobmitch/docker-stack-wait "$STACK_NAME"
 
             # Find and run all tasks that have deployed (automatically)
-            tasks=$(docker service ls --filter name=${REPO}_task --format "{{.Name}}")
+            tasks=$(docker service ls --filter name=${STACK_NAME}_task --format "{{.Name}}")
             for task in $tasks; do
                 docker service scale "$task"=1 -d
             done
