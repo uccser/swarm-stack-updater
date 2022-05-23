@@ -2,3 +2,4 @@ utilities/swarm-envs.sh
 utilities/secrets
 
 *.yml
+.env
