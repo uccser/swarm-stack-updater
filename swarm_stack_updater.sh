@@ -8,7 +8,7 @@ checkEnvVariableExists() {
     if [ -z "$VAL" ]; 
         then
             echo "ERROR: Define "$1" environment variable."
-            exit 1 
+            return 1 
         else
             echo "INFO: "$1" environment variable found."     
     fi
@@ -46,20 +46,20 @@ update_stack () {
     if [ -z ${URL+x} ];
         then
             echo "No website url provided. Exiting..."
-            exit 1;
+            return 1;
     fi
 
     if [ -z ${REPO+x} ];
         then
             echo "No repoistory provided. Exiting..."
-            exit 1;
+            return 1;
     fi
 
     RESPONSE=$(wget ${URL}status -q -O -)
     if [ -z ${RESPONSE+x} ];
         then
             echo "Unable to reach url (${URL}). Exiting..."
-            exit 1;
+            return 1;
     fi
 
     # Using a bash json interpreter
@@ -77,7 +77,7 @@ update_stack () {
                     download_files "$DEV" "$ORG" "$REPO"
                 else
                     echo "Development: $STACK_NAME is already up to date"
-                    exit 0
+                    return 0
             fi
         else
             RESPONSE=$(wget https://api.github.com/repos/${ORG}/${REPO}/releases/latest -q -O -)
@@ -89,7 +89,7 @@ update_stack () {
                     download_files "$DEV" "$ORG" "$REPO"
                 else
                     echo "Production: $STACK_NAME is already up to date"
-                    exit 0
+                    return 0
             fi
     fi
 
@@ -167,3 +167,5 @@ STACKS=$(yq '.* | key' config.yml)
 for stack in $STACKS; do
     update_stack "$stack"
 done
+
+exit 0
