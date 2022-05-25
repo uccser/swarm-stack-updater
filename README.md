@@ -9,7 +9,8 @@ Create a config file matching this description:
     website_url: <website_url>
     repo:
         name: <repo_name>
-        organisation: <organisation name>
+        organisation: <organisation_name>
+        user: <github_username>
 ```
 
 Run on swarm from command line (will run once):

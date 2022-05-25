@@ -9,6 +9,7 @@ RUN apk update
 # Add tools
 RUN apk add jq
 RUN apk add yq
+RUN apk add curl
 
 COPY swarm_stack_updater.sh /
 ENTRYPOINT [ "/swarm_stack_updater.sh"]
