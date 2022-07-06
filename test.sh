@@ -1,4 +1,4 @@
-RESPONSE=$(curl -G -s -u burtens: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 https://api.github.com/repos/uccser/cs-field-guide/actions/runs -d "per_page=8")
+RESPONSE=$(curl -G -s -u https://api.github.com/repos/uccser/cs-field-guide/actions/runs -d "per_page=8")
 
 
 # can use tag for prod or "develop" for development branch
