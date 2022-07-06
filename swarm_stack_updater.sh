@@ -19,7 +19,12 @@ write_log() {
     fi
 }
 
-checkEnvVariableExists() { 
+check_image_creation() {
+    
+}
+
+
+check_env_variable_exists() { 
     # Checks to see if environment varibles exist
     VAL=$(eval "echo \"\$$1\"")
     if [ -z "$VAL" ]; 
@@ -89,7 +94,7 @@ update_stack () {
     fi
 
     # Using a bash json interpreter
-    VERSION_NUMBER=$(jq -r -n --argjson data "${RESPONSE}" '$data.VERSION_NUMBER' )
+    VERSION_NUMBER=$(jq -r -n --argjson data "${RESPONSE}" '$data.VERSION_NUMBER')
     GIT_SHA=$(jq -r -n --argjson data "${RESPONSE}" '$data.GIT_SHA')
 
     if "${DEV}"; 
@@ -97,8 +102,12 @@ update_stack () {
             RESPONSE=$(curl -s -u $USER:$ACCESS_TOKEN https://api.github.com/repos/${ORG}/${REPO}/commits/develop/)
             REPO_SHA=$(jq -r -n --argjson data "${RESPONSE}" '$data.sha')
             REPO_SHA=${REPO_SHA::${#GIT_SHA}}
+
             if [ "$REPO_SHA" != "$GIT_SHA" ];
                 then
+
+                    # Before pulling files check to see if image has been created
+
                     write_log "Updating stack $STACK_NAME"
                     download_files "$DEV" "$ORG" "$REPO"
                 else
@@ -111,6 +120,7 @@ update_stack () {
 
             if [ "$VERSION_NUMBER" != "$VERSION_TAG" ];
                 then
+                    
                     write_log "Updating stack $STACK_NAME"
                     download_files "$DEV" "$ORG" "$REPO"
                 else
@@ -125,7 +135,7 @@ update_stack () {
             # Identify environment varibles in file (automatically)
             envs=$(grep '${[A-Z_]*}' docker-compose.prod.yml | awk -vRS="}" -vFS="{" '{print $2}')
             for env in $envs; do
-                checkEnvVariableExists "$env"
+                check_env_variable_exists "$env"
             done 
 
             # Run docker command to deploy the stack

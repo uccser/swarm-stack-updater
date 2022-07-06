@@ -1,3 +1,9 @@
-# ./swarm_stack_updater.sh -d -u https://www.csfieldguide.org.nz/ -r cs-field-guide
+RESPONSE=$(curl -G -s -u burtens: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 https://api.github.com/repos/uccser/cs-field-guide/actions/runs -d "per_page=8")
 
-docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock --env-file ./config_files/.env --mount type=bind,source="$(pwd)"/config_files/config.yml,dst=/config.yml swarm_stack_updater 
+
+# can use tag for prod or "develop" for development branch
+BRANCH="develop"
+
+WORK_FLOW_RUNS=$(jq -r -n --argjson data "${RESPONSE}" '$data.workflow_runs[] | select(.head_branch == "'"${BRANCH}"'" and .name == "Test and deploy") | any ')
+
+echo ${WORK_FLOW_RUNS}
