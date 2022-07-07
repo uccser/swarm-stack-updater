@@ -1,9 +1,14 @@
-RESPONSE=$(curl -G -s -u burtens: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 https://api.github.com/repos/uccser/cs-field-guide/actions/runs -d "per_page=8")
-
+RESPONSE=$(curl -G -s -u https://api.github.com/repos/uccser/cs-field-guide/actions/runs -d "status=in_progress")
 
 # can use tag for prod or "develop" for development branch
 BRANCH="develop"
 
-WORK_FLOW_RUNS=$(jq -r -n --argjson data "${RESPONSE}" '$data.workflow_runs[] | select(.head_branch == "'"${BRANCH}"'" and .name == "Test and deploy") | any ')
+# Can be optimised, if response is too big might fail
+IN_PROGRESS=$(jq -r -n --argjson data "${RESPONSE}" '$data.workflow_runs[] | select(.head_branch == "'"${BRANCH}"'" and .name == "Test and deploy") | any ')
 
-echo ${WORK_FLOW_RUNS}
+if [ -z "${IN_PROGRESS}" ]; 
+    then
+        echo false
+    else
+        
+fi

@@ -2,47 +2,76 @@
 
 set -e
 
-# Defines function to grab a time stamp currently in UTC
-get_Time () { Time=$(date +%Y-%m-%d\ %H:%M:%S) ; }
+# Defines function to 
 
 write_log() {
-    # Very Basic Timestamp Logging For Tool
-    get_Time
-    if [ -n "${1}" ]; then         # If it's from a "<message>" then set it
-        IN="${1}"
-        echo "${Time} ${IN}" 
-    else
-        while read IN               # If it is output from command then loop it
-        do
-            echo "${Time} ${IN}"
-        done
+                    # Very Basic Timestamp Logging For Tool
+                    #
+    _MESSAGE=$1     # The message to be logged
+
+    # Grab a time stamp currently in UTC
+    TIME=$(date +%Y-%m-%d\ %H:%M:%S)
+
+    if [ -n "${_MESSAGE}" ]; 
+        then                            # If it's from a "<message>" then set it
+            IN="${_MESSAGE}"
+            echo "${TIME} ${IN}" 
+        else
+            while read IN               # If it is output from command then loop it
+            do
+                echo "${TIME} ${IN}"
+            done
     fi
 }
 
-check_image_creation() {
-    
+image_creation_in_progress() {
+                # Checks if a website image is still being generated
+                # 
+    _ORG=$1     # The organisation that hosts the provided repository on Github
+    _REPO=$2    # The name of the repository we are checking
+    _BRANCH=$3  # The branch that is being checked
+
+    RESPONSE=$(curl -G -s -u ${USER}:${ACCESS_TOKEN} https://api.github.com/repos/${_ORG}/${_REPO}/actions/runs -d "status=in_progress")
+    IN_PROGRESS=$(jq -r -n --argjson data "${RESPONSE}" '$data.workflow_runs[] | select(.head_branch == "'"${_BRANCH}"'" and .name == "Test and deploy") | any ')
+
+    if [ -z "${IN_PROGRESS}" ]; 
+        then
+            # If no image creation is in progress
+            return 1
+        else
+            # If image is currently being created
+            return 0  
+    fi
 }
 
 
 check_env_variable_exists() { 
-    # Checks to see if environment varibles exist
+                # Checks to see if environment varibles exist
+                #
+    _VAR=$1     # The environment varible to be checked
+
     VAL=$(eval "echo \"\$$1\"")
-    if [ -z "$VAL" ]; 
+    if [ -z "${VAL}" ]; 
         then
-            write_log "ERROR: Define "$1" environment variable."
+            write_log "ERROR: Define ${_VAR} environment variable."
             return 1 
         else
-            write_log "INFO: "$1" environment variable found."     
+            write_log "INFO: ${_VAR} environment variable found."     
     fi
 }
 
 download_files () {
-    # Function to download the respective composefiles when updating. 
-    if "$1";
+                    # Function to download the respective composefiles when updating. 
+                    #
+    _IS_DEV=$1      # A boolean representing whether to access the development or production branch
+    _ORG=$2         # The organisation that hosts the provided repository on Github
+    _REPO=$3        # The repository we are downloading from
+
+    if "$_IS_DEV";
         then
-            file_url="https://raw.githubusercontent.com/$2/$3/develop/docker-compose.prod.yml"
+            file_url="https://raw.githubusercontent.com/$_ORG/$_REPO/develop/docker-compose.prod.yml"
         else
-            file_url="https://raw.githubusercontent.com/$2/$3/master/docker-compose.prod.yml"
+            file_url="https://raw.githubusercontent.com/$_ORG/$_REPO/master/docker-compose.prod.yml"
     fi
 
     # Get compose file contents and output to file
@@ -51,7 +80,10 @@ download_files () {
 
 
 update_stack () {
-    STACK_NAME=$1
+                    # Updates the stack with the provided stack name
+                    #
+    STACK_NAME=$1   # The stack to be updated
+
     write_log "Checking stack: $STACK_NAME for updates."
 
     # Remove prevous artifacts
@@ -105,8 +137,12 @@ update_stack () {
 
             if [ "$REPO_SHA" != "$GIT_SHA" ];
                 then
-
                     # Before pulling files check to see if image has been created
+                    if image_creation_in_progress $ORG $REPO "develop";
+                        then
+                            write_log "Service image not generated yet, skipping."
+                            return 0
+                    fi
 
                     write_log "Updating stack $STACK_NAME"
                     download_files "$DEV" "$ORG" "$REPO"
@@ -120,7 +156,12 @@ update_stack () {
 
             if [ "$VERSION_NUMBER" != "$VERSION_TAG" ];
                 then
-                    
+                    # Before pulling files check to see if image has been created
+                    if image_creation_in_progress $ORG $REPO $VERSION_TAG;
+                        then
+                            write_log "Service image not generated yet, skipping."
+                            return 0
+                    fi
                     write_log "Updating stack $STACK_NAME"
                     download_files "$DEV" "$ORG" "$REPO"
                 else
