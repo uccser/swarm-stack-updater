@@ -46,6 +46,12 @@ services:
           - "swarm.cronjob.enable=true"
           - "swarm.cronjob.schedule=*/2 * * * *" # Testing Update Every Minute
           - "swarm.cronjob.skip-running=true"
+      secrets:
+        - github_access_token
+
+secrets:
+    github_access_token:
+        external: true
 ```
 
 
@@ -57,4 +63,5 @@ sha commit hash and a tag version.
 * ```{"VERSION_NUMBER": "3.10.0", "GIT_SHA": "a49a111d"}```
 * Deployment on swarm requires swarm cronjob running and deployed on swarm
 this can be found here https://github.com/crazy-max/swarm-cronjob
-
+* From the bottom of the compose file you can see that a secret is required. This should be a github_access_token to allow for multiple requests. More about
+docker secrets can be found here: https://docs.docker.com/engine/swarm/secrets/
