@@ -89,16 +89,16 @@ update_stack () {
     # Remove prevous artifacts
     rm -rf docker-compose.prod.yml
 
-    DEV=$(yq ".$STACK_NAME.isdev" config.yml)
+    DEV=$(yq ".$STACK_NAME.isdev" swarm_updater_config)
     if [ ${DEV} == null ];
         then
             DEV=false
     fi
 
-    URL=$(yq ".$STACK_NAME.website_url" config.yml)
-    REPO=$(yq ".$STACK_NAME.repo.name" config.yml)
-    ORG=$(yq ".$STACK_NAME.repo.organisation" config.yml)
-    USER=$(yq ".$STACK_NAME.repo.user" config.yml)
+    URL=$(yq ".$STACK_NAME.website_url" swarm_updater_config)
+    REPO=$(yq ".$STACK_NAME.repo.name" swarm_updater_config)
+    ORG=$(yq ".$STACK_NAME.repo.organisation" swarm_updater_config)
+    USER=$(yq ".$STACK_NAME.repo.user" swarm_updater_config)
     
     if [ -z ${URL+x} ];
         then
@@ -233,7 +233,7 @@ if ! command -v yq &> /dev/null;
     write_log "Done"
 fi
 
-if [ ! -f config.yml ];
+if [ ! -f swarm_updater_config ];
     then
     write_log "Unable to find config file"
     write_log "Exiting..."
@@ -248,7 +248,7 @@ if [ ! -f /run/secrets/github_access_token ];
 fi
 
 ACCESS_TOKEN=$(cat /run/secrets/github_access_token)
-STACKS=$(yq '.* | key' config.yml)
+STACKS=$(yq '.* | key' swarm_updater_config)
 for stack in $STACKS; do
     update_stack "$stack"
 done
