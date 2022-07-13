@@ -131,12 +131,14 @@ update_stack () {
 
     if "${DEV}"; 
         then
-            RESPONSE=$(curl -s -u $USER:$ACCESS_TOKEN https://api.github.com/repos/${ORG}/${REPO}/commits/develop/)
+            RESPONSE=$(curl -s -u $USER:$ACCESS_TOKEN https://api.github.com/repos/${ORG}/${REPO}/commits/develop)
             REPO_SHA=$(jq -r -n --argjson data "${RESPONSE}" '$data.sha')
             REPO_SHA=${REPO_SHA::${#GIT_SHA}}
 
             if [ "$REPO_SHA" != "$GIT_SHA" ];
                 then
+                    write_log "Current Repoistory SHA: $REPO_SHA. This does not match current website SHA: $GIT_SHA."
+
                     # Before pulling files check to see if image has been created
                     if image_creation_in_progress $ORG $REPO "develop";
                         then
@@ -151,11 +153,13 @@ update_stack () {
                     return 0
             fi
         else
-            RESPONSE=$(curl -s -u $USER:$ACCESS_TOKEN https://api.github.com/repos/${ORG}/${REPO}/releases/latest/)
+            RESPONSE=$(curl -s -u $USER:$ACCESS_TOKEN https://api.github.com/repos/${ORG}/${REPO}/releases/latest)
             VERSION_TAG=$(jq -r -n --argjson data "${RESPONSE}" '$data.name')
 
             if [ "$VERSION_NUMBER" != "$VERSION_TAG" ];
                 then
+                    write_log "Latest version: $VERSION_TAG. This does not match current website version: $VERSION_NUMBER."
+
                     # Before pulling files check to see if image has been created
                     if image_creation_in_progress $ORG $REPO $VERSION_TAG;
                         then
