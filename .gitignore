@@ -1,7 +1,5 @@
 utilities/swarm-envs.sh
 utilities/secrets
 
-test.sh
-
 *.yml
 .env
