@@ -1,7 +1,7 @@
 # Swarm Stack Updater
 
 ## How to use:
-Create a config file matching this description:
+* First create a config file matching this description:
 ```
 ---
 <stack-name>:
@@ -13,15 +13,11 @@ Create a config file matching this description:
         user: <github_username>
 ```
 
-Run on swarm from command line (will run once):
-```
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock --env-file <path_to_env_file> --mount type=bind,source=<path_to_config_file>,dst=/config.yml swarm_stack_updater:latest 
-```
-
-**Or**
+* Next save that config file as "swarm_updater_config" in your swarm, this can be done <br />
+by typing ```docker config create swarm_updater_config <path-to-file>```
 
 
-Deploy on swarm using docker compose:
+* Finally Deploy on swarm using docker compose:
 ```
 version: '3.8'
 
@@ -30,9 +26,6 @@ services:
     image: swarm_stack_updater:latest
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - type: bind
-        source: <path_to_config_file>
-        target: /config.yml
     env_file: <path_to_env_file>
     deploy:
       mode: replicated
@@ -48,13 +41,17 @@ services:
           - "swarm.cronjob.skip-running=true"
       secrets:
         - github_access_token
+      configs:
+        - swarm_updater_config
+
+configs:
+    swarm_updater_config:
+        external: true
 
 secrets:
     github_access_token:
         external: true
 ```
-
-
 
 
 ## Requirements
