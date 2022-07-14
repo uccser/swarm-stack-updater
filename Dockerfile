@@ -2,13 +2,14 @@
 ARG DOCKER_VER=stable
 FROM docker:${DOCKER_VER}
 
-# Add required repository for reading yml filed
-RUN echo https://dl-cdn.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories
-RUN apk update
+
+# Add required tool for reading yml files
+RUN wget https://github.com/mikefarah/yq/releases/download/v4.26.1/yq_linux_386.tar.gz -O - |\
+    tar xz && mv yq_linux_386 /usr/bin/yq
 
 # Add tools
+RUN apk update
 RUN apk add jq
-RUN apk add yq
 RUN apk add curl
 
 COPY swarm_stack_updater.sh /
