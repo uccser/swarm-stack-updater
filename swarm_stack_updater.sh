@@ -131,8 +131,18 @@ update_stack () {
 
     if "${DEV}"; 
         then
-            RESPONSE=$(curl -s -u $USER:$ACCESS_TOKEN https://api.github.com/repos/${ORG}/${REPO}/commits/develop)
-            REPO_SHA=$(jq -r -n --argjson data "${RESPONSE}" '$data.sha')
+            # Find most recent commit by a user
+            PAGE=0
+            REPO_SHA=null
+            while [ $REPO_SHA == "null" ]; do # Assuming that there is always at least one commit that is valid
+                curl -G -s -u "${USER}:${ACCESS_TOKEN}" "https://api.github.com/repos/${ORG}/${REPO}/commits" -d "sha=develop" -d "page=$PAGE" -o commits.json 
+                REPO_SHA=$(jq -n --slurpfile data commits.json '$data[][] | select(.author.type == "User")' | jq -r -s 'first | .sha')
+                ((PAGE=PAGE+1))
+            done
+
+            # Remove artifacts
+            rm commits.json
+
             REPO_SHA=${REPO_SHA::${#GIT_SHA}}
 
             if [ "$REPO_SHA" != "$GIT_SHA" ];
