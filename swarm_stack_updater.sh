@@ -44,7 +44,13 @@ image_created() {
     local IMAGE_SHA=$(curl -s -L \
         -H "Authorization: Bearer ${BEARER_TOKEN}" \
         -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
-        https://ghcr.io/v2/${_ORG}/${_REPO}/blobs/$CONFIG_DIGEST  | jq -r '.config.Labels."org.opencontainers.image.revision"')
+        https://ghcr.io/v2/${_ORG}/${_REPO}/blobs/$CONFIG_DIGEST  | jq -r '.config.labels."org.opencontainers.image.revision"')
+
+    if [ "$IMAGE_SHA" == "null" ];
+        then 
+            write_log "Image manifest informaton is unavailable."
+            return 1
+    fi
 
     if [ "$_COMMIT_SHA" == "$IMAGE_SHA" ]; 
         then
