@@ -7,10 +7,10 @@ set -e
 write_log() {
                     # Very Basic Timestamp Logging For Tool
                     #
-    _MESSAGE=$1     # The message to be logged
+    local _MESSAGE=$1     # The message to be logged
 
     # Grab a time stamp currently in UTC
-    TIME=$(date +%Y-%m-%d\ %H:%M:%S)
+    local TIME=$(date +%Y-%m-%d\ %H:%M:%S)
 
     if [ -n "${_MESSAGE}" ]; 
         then                            # If it's from a "<message>" then set it
@@ -24,22 +24,34 @@ write_log() {
     fi
 }
 
-image_creation_in_progress() {
-                # Checks if a website image is still being generated
-                # 
-    _ORG=$1     # The organisation that hosts the provided repository on Github
-    _REPO=$2    # The name of the repository we are checking
-    _BRANCH=$3  # The branch that is being checked
+image_created() {
+                        # Checks if a website image has been created
+                        # 
+    local _ORG=$1       # The organisation that hosts the provided repository on Github
+    local _REPO=$2      # The name of the repository we are checking
+    local _BRANCH=$3    # The branch that is being checked
+    local _COMMIT_SHA=$4   # The sha for the most recent commit
 
-    RESPONSE=$(curl -G -s -u ${USER}:${ACCESS_TOKEN} https://api.github.com/repos/${_ORG}/${_REPO}/actions/runs -d "status=in_progress")
-    IN_PROGRESS=$(jq -r -n --argjson data "${RESPONSE}" '$data.workflow_runs[] | select(.head_branch == "'"${_BRANCH}"'" and .name == "Test and deploy") | any ')
+    local BEARER_TOKEN=$(curl -s \
+        -u username:${ACCESS_TOKEN} \
+        "https://ghcr.io/token?service=ghcr.io&scope=repository:${REPO}:pull" | jq -r '.token')
 
-    if [ -z "${IN_PROGRESS}" ]; 
+    local CONFIG_DIGEST=$(curl -s \
+        -H "Authorization: Bearer ${BEARER_TOKEN}" \
+        -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+        https://ghcr.io/v2/${_ORG}/${_REPO}/manifests/${_BRANCH} | jq -r .config.digest)
+
+    local IMAGE_SHA=$(curl -s -L \
+        -H "Authorization: Bearer ${BEARER_TOKEN}" \
+        -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+        https://ghcr.io/v2/${_ORG}/${_REPO}/blobs/$CONFIG_DIGEST  | jq -r '.config.Labels."org.opencontainers.image.revision"')
+
+    if [ "$_COMMIT_SHA" == "$IMAGE_SHA" ]; 
         then
-            # If no image creation is in progress
+            # Image has been created
             return 1
         else
-            # If image is currently being created
+            # Image has not been created
             return 0  
     fi
 }
@@ -48,9 +60,9 @@ image_creation_in_progress() {
 check_env_variable_exists() { 
                 # Checks to see if environment varibles exist
                 #
-    _VAR=$1     # The environment varible to be checked
+    local _VAR=$1     # The environment varible to be checked
 
-    VAL=$(eval "echo \"\$$1\"")
+    local VAL=$(eval "echo \"\$$1\"")
     if [ -z "${VAL}" ]; 
         then
             write_log "ERROR: Define ${_VAR} environment variable."
@@ -63,9 +75,9 @@ check_env_variable_exists() {
 download_files () {
                     # Function to download the respective composefiles when updating. 
                     #
-    _IS_DEV=$1      # A boolean representing whether to access the development or production branch
-    _ORG=$2         # The organisation that hosts the provided repository on Github
-    _REPO=$3        # The repository we are downloading from
+    local _IS_DEV=$1      # A boolean representing whether to access the development or production branch
+    local _ORG=$2         # The organisation that hosts the provided repository on Github
+    local _REPO=$3        # The repository we are downloading from
 
     if "$_IS_DEV";
         then
@@ -133,24 +145,22 @@ update_stack () {
         then
             # Find most recent commit by a user
             PAGE=0
-            REPO_SHA=null
-            while [ $REPO_SHA == "null" ]; do # Assuming that there is always at least one commit that is valid
+            COMMIT_SHA=null
+            while [ $COMMIT_SHA == "null" ]; do # Assuming that there is always at least one commit that is valid
                 curl -G -s -u "${USER}:${ACCESS_TOKEN}" "https://api.github.com/repos/${ORG}/${REPO}/commits" -d "sha=develop" -d "page=$PAGE" -o commits.json 
-                REPO_SHA=$(jq -n --slurpfile data commits.json '$data[][] | select(.author.type == "User")' | jq -r -s 'first | .sha')
+                COMMIT_SHA=$(jq -n --slurpfile data commits.json '$data[][] | select(.author.type == "User")' | jq -r -s 'first | .sha')
                 ((PAGE=PAGE+1))
             done
 
             # Remove artifacts
             rm commits.json
 
-            REPO_SHA=${REPO_SHA::${#GIT_SHA}}
-
-            if [ "$REPO_SHA" != "$GIT_SHA" ];
+            if [ "${COMMIT_SHA::${#GIT_SHA}}" != "$GIT_SHA" ];
                 then
-                    write_log "Current Repoistory SHA: $REPO_SHA. This does not match current website SHA: $GIT_SHA."
+                    write_log "Current Repoistory SHA: ${COMMIT_SHA::${#GIT_SHA}}. This does not match current website SHA: $GIT_SHA."
 
                     # Before pulling files check to see if image has been created
-                    if image_creation_in_progress $ORG $REPO "develop";
+                    if ! image_created $ORG $REPO "develop" $COMMIT_SHA;
                         then
                             write_log "Service image not generated yet, skipping."
                             return 0
@@ -163,15 +173,15 @@ update_stack () {
                     return 0
             fi
         else
-            RESPONSE=$(curl -s -u $USER:$ACCESS_TOKEN https://api.github.com/repos/${ORG}/${REPO}/releases/latest)
-            VERSION_TAG=$(jq -r -n --argjson data "${RESPONSE}" '$data.name')
+            VERSION_TAG=$(curl -s -u $USER:$ACCESS_TOKEN https://api.github.com/repos/${ORG}/${REPO}/releases/latest | jq -r '.name')
+            COMMIT_SHA=$(curl -s -u $USER:$ACCESS_TOKEN https://api.github.com/repos/${ORG}/${REPO}/git/ref/tags/${VERSION_TAG} | jq -r '.object.sha') 
 
             if [ "$VERSION_NUMBER" != "$VERSION_TAG" ];
                 then
                     write_log "Latest version: $VERSION_TAG. This does not match current website version: $VERSION_NUMBER."
 
                     # Before pulling files check to see if image has been created
-                    if image_creation_in_progress $ORG $REPO $VERSION_TAG;
+                    if ! image_created $ORG $REPO "latest" $COMMIT_SHA;
                         then
                             write_log "Service image not generated yet, skipping."
                             return 0
@@ -263,8 +273,18 @@ fi
 
 ACCESS_TOKEN=$(cat /run/secrets/github_access_token)
 STACKS=$(yq '.* | key' swarm_updater_config)
+
+START_TIME=$(date +%s)
 for stack in $STACKS; do
     update_stack "$stack"
 done
+END_TIME=$(date +%s)
+RUNTIME=$((END_TIME-START_TIME))
+
+# Generate and output time
+TIME_H=$(($RUNTIME / 3600)); 
+TIME_M=$(( ($RUNTIME % 3600) / 60 )); 
+TIME_S=$(( ($RUNTIME % 3600) % 60 )); 
+write_log "Runtime: $TIME_H:$TIME_M:$TIME_S (hh:mm:ss)"
 
 exit 0
