@@ -1,5 +1,10 @@
+# Configuration files
 utilities/swarm-envs.sh
 utilities/secrets
 
+# Testing files
+test.sh
+
+# Environment files
 *.yml
 .env
