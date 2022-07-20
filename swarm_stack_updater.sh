@@ -49,10 +49,10 @@ image_created() {
     if [ "$_COMMIT_SHA" == "$IMAGE_SHA" ]; 
         then
             # Image has been created
-            return 1
+            return 0
         else
             # Image has not been created
-            return 0  
+            return 1 
     fi
 }
 
