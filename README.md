@@ -55,6 +55,8 @@ secrets:
 
 
 ## Requirements
+* The tool makes use of the github api and container registry. You may have to update the script to work for other 
+repositories and container registries.
 * Website must have a status url that returns a JSON object that contains both 
 sha commit hash and a tag version.
 * ```{"VERSION_NUMBER": "3.10.0", "GIT_SHA": "a49a111d"}```
@@ -62,3 +64,15 @@ sha commit hash and a tag version.
 this can be found here https://github.com/crazy-max/swarm-cronjob
 * From the bottom of the compose file you can see that a secret is required. This should be a github_access_token to allow for multiple requests. More about
 docker secrets can be found here: https://docs.docker.com/engine/swarm/secrets/
+* Your docker images should also contain some extra information in their manifest files. This is so the app is able to identify whether a new image is available to download.
+
+Manifest JSON should contain at least:
+```
+...
+labels: {
+  "org.opencontainers.image.revision": "<commit-sha>"
+}
+...
+```
+
+
