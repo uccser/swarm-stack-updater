@@ -46,10 +46,6 @@ image_created() {
         -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
         https://ghcr.io/v2/${_ORG}/${_REPO}/blobs/${CONFIG_DIGEST}  | jq -r '.config.Labels."org.opencontainers.image.revision"')
 
-
-    echo $CONFIG_DIGEST
-    echo $IMAGE_SHA
-
     if [ "$IMAGE_SHA" == "null" ];
         then 
             write_log "Image manifest informaton is unavailable."
