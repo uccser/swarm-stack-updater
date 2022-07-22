@@ -34,7 +34,7 @@ image_created() {
 
     local BEARER_TOKEN=$(curl -s \
         -u username:${ACCESS_TOKEN} \
-        "https://ghcr.io/token?service=ghcr.io&scope=repository:${REPO}:pull" | jq -r '.token')
+        "https://ghcr.io/token?service=ghcr.io&scope=repository:${_REPO}:pull" | jq -r '.token')
 
     local CONFIG_DIGEST=$(curl -s \
         -H "Authorization: Bearer ${BEARER_TOKEN}" \
@@ -44,7 +44,7 @@ image_created() {
     local IMAGE_SHA=$(curl -s -L \
         -H "Authorization: Bearer ${BEARER_TOKEN}" \
         -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
-        https://ghcr.io/v2/${_ORG}/${_REPO}/blobs/$CONFIG_DIGEST  | jq -r '.config.labels."org.opencontainers.image.revision"')
+        https://ghcr.io/v2/${_ORG}/${_REPO}/blobs/$CONFIG_DIGEST  | jq -r '.config.Labels."org.opencontainers.image.revision"')
 
     if [ "$IMAGE_SHA" == "null" ];
         then 
