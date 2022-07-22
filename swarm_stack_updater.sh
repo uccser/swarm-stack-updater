@@ -136,10 +136,10 @@ update_stack () {
             return 1;
     fi
 
-    RESPONSE=$(curl -s -u $USER:$ACCESS_TOKEN ${URL}status/)
-    if [ -z ${RESPONSE+x} ];
+    RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${URL}status/")
+    if [ "$RESPONSE_CODE" != "200" ];
         then
-            write_log "Unable to reach url (${URL}). Skipping..."
+            write_log "Unable to reach url (${URL}). Error ("$RESPONSE_CODE"). Skipping..."
             return 1;
     fi
 
