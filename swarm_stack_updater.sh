@@ -44,7 +44,11 @@ image_created() {
     local IMAGE_SHA=$(curl -s -L \
         -H "Authorization: Bearer ${BEARER_TOKEN}" \
         -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
-        https://ghcr.io/v2/${_ORG}/${_REPO}/blobs/$CONFIG_DIGEST  | jq -r '.config.Labels."org.opencontainers.image.revision"')
+        https://ghcr.io/v2/${_ORG}/${_REPO}/blobs/${CONFIG_DIGEST}  | jq -r '.config.Labels."org.opencontainers.image.revision"')
+
+
+    echo $CONFIG_DIGEST
+    echo $IMAGE_SHA
 
     if [ "$IMAGE_SHA" == "null" ];
         then 
@@ -136,10 +140,10 @@ update_stack () {
             return 1;
     fi
 
-    RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${URL}status/")
-    if [ "$RESPONSE_CODE" != "200" ];
+    RESPONSE=$(curl -s -f -u $USER:$ACCESS_TOKEN ${URL}status/)
+    if [ -z ${RESPONSE+x} ];
         then
-            write_log "Unable to reach url (${URL}). Error ("$RESPONSE_CODE"). Skipping..."
+            write_log "Unable to reach url (${URL}). Skipping..."
             return 1;
     fi
 
