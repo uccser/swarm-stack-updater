@@ -136,12 +136,17 @@ update_stack () {
             return 1;
     fi
 
-    RESPONSE=$(curl -s -f ${URL}status/)
-    if [ -z "$RESPONSE" ];
-        then
-            write_log "Unable to reach url (${URL}). Skipping..."
-            return 1;
-    fi
+    # Dont want to exit if curl fails
+    set +e
+
+        RESPONSE=$(curl -s -f ${URL}status/)
+        if [ -z "$RESPONSE" ];
+            then
+                write_log "Unable to reach status url (${URL}statis/). Skipping..."
+                return 1;
+        fi
+
+    set -e
 
     # Using a bash json interpreter
     VERSION_NUMBER=$(jq -r -n --argjson data "${RESPONSE}" '$data.VERSION_NUMBER')
