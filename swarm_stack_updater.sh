@@ -137,7 +137,7 @@ update_stack () {
     fi
 
     RESPONSE=$(curl -s -f -u $USER:$ACCESS_TOKEN ${URL}status/)
-    if [ -z ${RESPONSE+x} ];
+    if [ -z ${RESPONSE} ];
         then
             write_log "Unable to reach url (${URL}). Skipping..."
             return 1;
