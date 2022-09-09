@@ -139,10 +139,10 @@ update_stack () {
     # Dont want to exit if curl fails
     set +e
 
-        RESPONSE=$(curl -s -f ${URL}status/)
+        RESPONSE=$(curl -s -f ${URL}/status/)
         if [ -z "$RESPONSE" ];
             then
-                write_log "Unable to reach status url (${URL}status/). Skipping..."
+                write_log "Unable to reach status url (${URL}/status/). Skipping..."
                 return 1;
         fi
 
