@@ -6,5 +6,6 @@ utilities/secrets
 test.sh
 
 # Environment files
+*.yaml
 *.yml
-.env
+*.env
