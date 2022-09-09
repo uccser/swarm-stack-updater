@@ -79,11 +79,11 @@ check_env_variable_exists() {
 }
 
 download_files () {
-                    # Function to download the respective composefiles when updating. 
-                    #
-    local _IS_DEV=$1      # A boolean representing whether to access the development or production branch
-    local _ORG=$2         # The organisation that hosts the provided repository on Github
-    local _REPO=$3        # The repository we are downloading from
+                        # Function to download the respective composefiles when updating. 
+                        #
+    local _IS_DEV=$1    # A boolean representing whether to access the development or production branch
+    local _ORG=$2       # The organisation that hosts the provided repository on Github
+    local _REPO=$3      # The repository we are downloading from
 
     if "$_IS_DEV";
         then
@@ -154,13 +154,15 @@ update_stack () {
 
     if "${DEV}"; 
         then
+            write_log "Finding Latest Commit:"
+
             # Find most recent commit by a user
-            PAGE=0
+            PAGE=1
             COMMIT_SHA=null
             while [ $COMMIT_SHA == "null" ]; do # Assuming that there is always at least one commit that is valid
                 curl -G -s -u "${USER}:${ACCESS_TOKEN}" "https://api.github.com/repos/${ORG}/${REPO}/commits" -d "sha=develop" -d "page=$PAGE" -o commits.json 
                 COMMIT_SHA=$(jq -n --slurpfile data commits.json '$data[][] | select(.author.type == "User")' | jq -r -s 'first | .sha')
-                ((PAGE=PAGE+1))
+                PAGE=$((PAGE+1))
             done
 
             # Remove artifacts
