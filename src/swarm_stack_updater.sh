@@ -5,9 +5,9 @@ set -e
 # Defines function to 
 
 write_log() {
-                    # Very Basic Timestamp Logging For Tool
-                    #
-    local _MESSAGE=$1     # The message to be logged
+                        # Very Basic Timestamp Logging For Tool
+                        #
+    local _MESSAGE=$1   # The message to be logged
 
     # Grab a time stamp currently in UTC
     local TIME=$(date +%Y-%m-%d\ %H:%M:%S)
@@ -25,12 +25,12 @@ write_log() {
 }
 
 image_created() {
-                        # Checks if a website image has been created
-                        # 
-    local _ORG=$1       # The organisation that hosts the provided repository on Github
-    local _REPO=$2      # The name of the repository we are checking
-    local _BRANCH=$3    # The branch that is being checked
-    local _COMMIT_SHA=$4   # The sha for the most recent commit
+                            # Checks if a website image has been created
+                            # 
+    local _ORG=$1           # The organisation that hosts the provided repository on Github
+    local _REPO=$2          # The name of the repository we are checking
+    local _BRANCH=$3        # The branch that is being checked
+    local _COMMIT_SHA=$4    # The sha for the most recent commit
 
     local BEARER_TOKEN=$(curl -s \
         -u username:${ACCESS_TOKEN} \
@@ -64,9 +64,9 @@ image_created() {
 
 
 check_env_variable_exists() { 
-                # Checks to see if environment varibles exist
-                #
-    local _VAR=$1     # The environment varible to be checked
+                    # Checks to see if environment varibles exist
+                    #
+    local _VAR=$1   # The environment varible to be checked
 
     local VAL=$(eval "echo \"\$$1\"")
     if [ -z "${VAL}" ]; 
