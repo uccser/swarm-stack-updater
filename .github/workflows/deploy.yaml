@@ -5,9 +5,9 @@ on:
     workflows: ["Test"]
     types:
       - completed
-  push:
     branches:
       - master
+    
 
 env:
   REGISTRY: ghcr.io
