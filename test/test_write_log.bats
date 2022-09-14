@@ -28,7 +28,6 @@ setup() {
     assert_output "${_TEST_DATE} ${expected_message}"
 }
 
-
 command_log() {
     chmod --help | write_log
 }

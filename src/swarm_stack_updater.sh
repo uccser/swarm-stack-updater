@@ -61,7 +61,7 @@ check_env_variable_exists() {
                     #
     local _VAR=$1   # The environment varible to be checked
 
-    local VAL=$(eval "echo \"\$$1\"")
+    local VAL=$(eval "echo \"\$$1\"") # Calling eval is not safe so will have to find a way to avoid this
     if [ -z "${VAL}" ]; 
         then
             write_log "ERROR: Define ${_VAR} environment variable."
