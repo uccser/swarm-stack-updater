@@ -8,5 +8,5 @@
 	path = test/test_helper/bats-assert
 	url = https://github.com/bats-core/bats-assert.git
 [submodule "test/helpers/mocks"]
-	path = test/helpers/mocks
+	path = test/test_helper/bats-mock
 	url = https://github.com/lox/bats-mock

@@ -1,6 +1,10 @@
 name: Deploy
 
 on:
+ workflow_run:
+    workflows: ["Test"]
+    types:
+      - completed
   workflow_dispatch:
   push:
     branches:
@@ -14,6 +18,7 @@ jobs:
   publish-docker-image:
     name: Create and publish Docker image
     if: (github.ref == 'refs/heads/master')
+    if: (github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository

@@ -1,5 +1,10 @@
-#!bats/bin/bats
+setup() {
+    load 'test_helper/common-setup'
+    _common_setup
+}
+
 
 @test "can run our script" {
-    ./project.sh 
+    run project.sh 
+    assert_output --partial 'Welcome to our project!'
 }

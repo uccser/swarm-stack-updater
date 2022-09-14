@@ -1,0 +1,14 @@
+name: "Test"
+
+on: push
+
+jobs:
+  bats-testing:
+    name: Run BATS test suite
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Run Suite
+        run: ./test/bats/bin/bats test/
