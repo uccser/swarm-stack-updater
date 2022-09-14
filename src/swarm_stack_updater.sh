@@ -1,25 +1,18 @@
 #!/bin/sh
 
-set -e
-
-# Defines function to 
-
 write_log() {
                         # Very Basic Timestamp Logging For Tool
                         #
     local _MESSAGE=$1   # The message to be logged
-
-    # Grab a time stamp currently in UTC
-    local TIME=$(date +%Y-%m-%d\ %H:%M:%S)
-
+    
     if [ -n "${_MESSAGE}" ]; 
         then                            # If it's from a "<message>" then set it
             IN="${_MESSAGE}"
-            echo "${TIME} ${IN}" 
+            echo "$(date +%Y-%m-%d\ %H:%M:%S) ${IN}" 
         else
-            while read IN               # If it is output from command then loop it
+            while read -t 1 IN  # If it is output from command then loop it
             do
-                echo "${TIME} ${IN}"
+                echo "$(date +%Y-%m-%d\ %H:%M:%S) ${IN}"
             done
     fi
 }
@@ -248,56 +241,69 @@ update_stack () {
     fi
 }
 
+main() {
+    # Main Function for Swarm Stack Updater Tool 
 
-# Install jq JSON tool if not found (if this was a docker container this could be pre-installed)
-if ! command -v jq &> /dev/null; 
-    then
-        write_log "jq could not be found"
-        write_log "Installing jq..."
-        sudo apt install jq
+    # Install jq JSON tool if not found (if this was a docker container this could be pre-installed)
+    if ! command -v jq &> /dev/null; 
+        then
+            write_log "jq could not be found"
+            write_log "Installing jq..."
+            sudo apt install jq
+            write_log "Done"
+    fi
+
+    # Install yq yaml tool if not found (if this was a docker container this could be pre-installed)
+    if ! command -v yq &> /dev/null;
+        then
+        write_log "yq could not be found"
+        write_log "Installing yq..."
+        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys CC86BB64
+        sudo add-apt-repository ppa:rmescandon/yq
+        sudo apt update
+        sudo apt install yq -y
         write_log "Done"
-fi
+    fi
 
-# Install yq yaml tool if not found (if this was a docker container this could be pre-installed)
-if ! command -v yq &> /dev/null;
+    if [ ! -f swarm_updater_config ];
+        then
+        write_log "Unable to find config file"
+        write_log "Exiting..."
+        exit 1
+    fi
+
+    if [ ! -f /run/secrets/github_access_token ];
+        then
+        write_log "Unable to access github token"
+        write_log "Exiting..."
+        exit 1
+    fi
+
+
+    ACCESS_TOKEN=$(cat /run/secrets/github_access_token)
+    STACKS=$(yq '.* | key' swarm_updater_config)
+
+    START_TIME=$(date +%s)
+    for stack in $STACKS; do
+        update_stack "$stack"
+    done
+    END_TIME=$(date +%s)
+    RUNTIME=$((END_TIME-START_TIME))
+
+    # Generate and output time
+    TIME_H=$(($RUNTIME / 3600)); 
+    TIME_M=$(( ($RUNTIME % 3600) / 60 )); 
+    TIME_S=$(( ($RUNTIME % 3600) % 60 )); 
+    write_log "Runtime: $TIME_H:$TIME_M:$TIME_S (hh:mm:ss)"
+
+    exit 0
+}
+
+
+RUNNING="$(basename $0)"
+
+# Check to see if file is being used for testing.
+if [ "$RUNNING" = "swarm_stack_updater.sh" ];
     then
-    write_log "jq could not be found"
-    write_log "Installing yq..."
-    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys CC86BB64
-    sudo add-apt-repository ppa:rmescandon/yq
-    sudo apt update
-    sudo apt install yq -y
-    write_log "Done"
+        main
 fi
-
-if [ ! -f swarm_updater_config ];
-    then
-    write_log "Unable to find config file"
-    write_log "Exiting..."
-    exit 1
-fi
-
-if [ ! -f /run/secrets/github_access_token ];
-    then
-    write_log "Unable to access github token"
-    write_log "Exiting..."
-    exit 1
-fi
-
-ACCESS_TOKEN=$(cat /run/secrets/github_access_token)
-STACKS=$(yq '.* | key' swarm_updater_config)
-
-START_TIME=$(date +%s)
-for stack in $STACKS; do
-    update_stack "$stack"
-done
-END_TIME=$(date +%s)
-RUNTIME=$((END_TIME-START_TIME))
-
-# Generate and output time
-TIME_H=$(($RUNTIME / 3600)); 
-TIME_M=$(( ($RUNTIME % 3600) / 60 )); 
-TIME_S=$(( ($RUNTIME % 3600) % 60 )); 
-write_log "Runtime: $TIME_H:$TIME_M:$TIME_S (hh:mm:ss)"
-
-exit 0

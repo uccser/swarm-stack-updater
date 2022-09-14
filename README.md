@@ -1,6 +1,8 @@
 # Swarm Stack Updater
 
 ## How to use:
+
+### Deploying Using Docker
 * First create a config file matching this description:
 ```
 ---
@@ -52,6 +54,21 @@ secrets:
     github_access_token:
         external: true
 ```
+
+### Running Locally
+
+The tool has been designed specifically to run using docker swarm or compose but it can be run locally if required. I have tryed my best to remove all issues when running locally but it may not be perfect.
+
+* First Clone the repository using following the command:
+```
+https://github.com/uccser/swarm-stack-updater.git
+```
+* Then use the following command to pull BATS, which is used for automated testing:
+```
+git submodule update --init
+```
+This will pull all the required tools for running and creating tests for this application.
+
 
 
 ## Requirements
