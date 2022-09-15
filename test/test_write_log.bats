@@ -26,6 +26,7 @@ setup() {
 
     run write_log "Testing"
     assert_output "${_TEST_DATE} ${expected_message}"
+    unstub date 
 }
 
 command_log() {
@@ -37,4 +38,5 @@ command_log() {
 
     run command_log
     assert_output -p "${_TEST_DATE} ${expected_message}"
+    unstub date 
 }
