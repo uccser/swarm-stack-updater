@@ -24,7 +24,7 @@ setup() {
 
 }
 
-@test 'Test image created | unable to retrieve bearer token' {
+@test 'Test image created | Unable to retrieve bearer token' {
 
     local expected_args="-s -u $USER:$ACCESS_TOKEN 'https://ghcr.io/token?service=ghcr.io&scope=repository:${REPO}:pull'"
 
@@ -37,7 +37,7 @@ setup() {
     assert_output "${_TEST_DATE} Unable to retrive bearer token"
 }
 
-@test 'Test image created | unable to retrieve config digest' {
+@test 'Test image created | Unable to retrieve config digest' {
 
     local BEARER_TOKEN="TOKEN"
 
@@ -53,7 +53,7 @@ setup() {
     assert_output "${_TEST_DATE} Unable to retrive config digest"
 }
 
-@test 'Test image created | unable to retreve image manifest information' {
+@test 'Test image created | Unable to retreve image manifest information' {
 
     local BEARER_TOKEN="TOKEN"
     local CONFIG_DIGEST="DIGEST"

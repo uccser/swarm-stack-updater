@@ -15,7 +15,7 @@ setup() {
         "${_DATE_ARGS} : echo '${_TEST_DATE}'"
 }
 
-@test 'Check for environment variable that does exist' {
+@test 'Testing check env exists | Check for environment variable that does exist' {
     export EXIST="Hello"
     local ENV=EXIST
     local expected="${_TEST_DATE} INFO: ${ENV} environment variable found."
@@ -25,7 +25,7 @@ setup() {
     assert_output "${expected}"
 }
 
-@test 'Check for environment variable that does not exist' {
+@test 'Testing check env exists | Check for environment variable that does not exist' {
     local ENV=NONE
     local expected="${_TEST_DATE} ERROR: Define ${ENV} environment variable."
 

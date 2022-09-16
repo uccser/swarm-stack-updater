@@ -16,12 +16,12 @@ setup() {
 
 }
 
-@test 'Testing Logging Function with No Input' {
+@test 'Testing write log | No Input' {
     run write_log
     refute_output
 }
 
-@test 'Testing Logging Function with One Line Input' {
+@test 'Testing write log | One Line Input' {
     local expected_message="Testing"
 
     run write_log "Testing"
@@ -33,7 +33,7 @@ command_log() {
     chmod --help | write_log
 }
 
-@test "Testing logging function with Command Input" {
+@test "Testing write log | Command Input" {
     local expected_message=$(chmod --help | head -n 1)
 
     run command_log

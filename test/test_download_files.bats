@@ -12,7 +12,7 @@ setup() {
 
 }
 
-@test 'Correct Arguments passed to curl if IS_DEV is set to true' {
+@test 'Testing download files | Correct arguments passed to curl if IS_DEV is set to true' {
     local expected_org="UCCSER"
     local expected_repo="test-repo"
     local IS_DEV=true
@@ -28,7 +28,7 @@ setup() {
     assert_output "Correct args passed."
 }
 
-@test 'Correct Arguments passed to curl if IS_DEV is set to false' {
+@test 'Testing download files | Correct arguments passed to curl if IS_DEV is set to false' {
     local expected_org="UCCSER"
     local expected_repo="test-repo"
     local IS_DEV=false
