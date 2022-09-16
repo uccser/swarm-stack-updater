@@ -26,13 +26,25 @@ image_created() {
     local _COMMIT_SHA=$4    # The sha for the most recent commit
 
     local BEARER_TOKEN=$(curl -s \
-        -u username:${ACCESS_TOKEN} \
+        -u $USER:$ACCESS_TOKEN \
         "https://ghcr.io/token?service=ghcr.io&scope=repository:${_REPO}:pull" | jq -r '.token')
+
+    if [ "$BEARER_TOKEN" == "null" ];
+        then
+            write_log "Unable to retrive bearer token"
+            return 1
+    fi
 
     local CONFIG_DIGEST=$(curl -s \
         -H "Authorization: Bearer ${BEARER_TOKEN}" \
         -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
         https://ghcr.io/v2/${_ORG}/${_REPO}/manifests/${_BRANCH} | jq -r .config.digest)
+
+    if [ "$CONFIG_DIGEST" == "null" ];
+        then
+            write_log "Unable to retrive config digest"
+            return 1
+    fi
 
     local IMAGE_SHA=$(curl -s -L \
         -H "Authorization: Bearer ${BEARER_TOKEN}" \
@@ -47,9 +59,11 @@ image_created() {
 
     if [ "$_COMMIT_SHA" == "$IMAGE_SHA" ]; 
         then
+            write_log "INFO: Image has been created"
             # Image has been created
             return 0
         else
+            write_log "INFO: Image has not been created"
             # Image has not been created
             return 1 
     fi
