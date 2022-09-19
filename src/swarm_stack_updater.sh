@@ -128,19 +128,19 @@ update_stack () {
     if [ -z ${URL+x} ];
         then
             write_log "No website url provided. Skipping..."
-            return 1;
+            return
     fi
 
     if [ -z ${REPO+x} ];
         then
             write_log "No repoistory provided. Skipping..."
-            return 1;
+            return
     fi
 
     if [ -z ${USER+x} ];
         then
             write_log "No user provided. Skipping..."
-            return 1;
+            return
     fi
 
     # Dont want to exit if curl fails
@@ -150,7 +150,7 @@ update_stack () {
         if [ -z "$RESPONSE" ];
             then
                 write_log "Unable to reach status url (${URL}/status/). Skipping..."
-                return 1;
+                return
         fi
 
     set -e
@@ -183,14 +183,14 @@ update_stack () {
                     if ! image_created $ORG $REPO "develop" $COMMIT_SHA;
                         then
                             write_log "Service image not generated yet, skipping."
-                            return 0
+                            return
                     fi
 
                     write_log "Updating stack $STACK_NAME"
                     download_files "$DEV" "$ORG" "$REPO"
                 else
                     write_log "Development: $STACK_NAME is already up to date"
-                    return 0
+                    return
             fi
         else
             VERSION_TAG=$(curl -s -u $USER:$ACCESS_TOKEN https://api.github.com/repos/${ORG}/${REPO}/releases/latest | jq -r '.name')
@@ -204,13 +204,13 @@ update_stack () {
                     if ! image_created $ORG $REPO "latest" $COMMIT_SHA;
                         then
                             write_log "Service image not generated yet, skipping."
-                            return 0
+                            return
                     fi
                     write_log "Updating stack $STACK_NAME"
                     download_files "$DEV" "$ORG" "$REPO"
                 else
                     write_log "Production: $STACK_NAME is already up to date"
-                    return 0
+                    return
             fi
     fi
 
@@ -293,7 +293,6 @@ main() {
         exit 1
     fi
 
-
     ACCESS_TOKEN=$(cat /run/secrets/github_access_token)
     STACKS=$(yq '.* | key' swarm_updater_config)
 
@@ -313,6 +312,7 @@ main() {
     exit 0
 }
 
+set -e
 
 RUNNING="$(basename $0)"
 
