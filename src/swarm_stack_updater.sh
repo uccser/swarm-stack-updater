@@ -10,7 +10,7 @@ write_log() {
             IN="${_MESSAGE}"
             echo "$(date +%Y-%m-%d\ %H:%M:%S) ${IN}" 
         else
-            while read -t 1 IN  # If it is output from command then loop it
+            while read IN  # If it is output from command then loop it
             do
                 echo "$(date +%Y-%m-%d\ %H:%M:%S) ${IN}"
             done

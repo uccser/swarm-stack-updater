@@ -16,11 +16,6 @@ setup() {
 
 }
 
-@test 'Testing write log | No Input' {
-    run write_log
-    refute_output
-}
-
 @test 'Testing write log | One Line Input' {
     local expected_message="Testing"
 
