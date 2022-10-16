@@ -1,4 +1,7 @@
 # Swarm Stack Updater
+The Swarm Stack Updater an automated tool built in shell that can be run periodically on a docker swarm to search for and identify any out of date stacks. If any changes are found, this tool automatically downloads, updates, and redeploys software back onto the swarm.
+
+This tool has been developed in conjuction with the University of Canterbury Computer Science Education Research Group as a University of Canterbury Sofware Engineering final year project. 
 
 ## How to use:
 
