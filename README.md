@@ -92,4 +92,40 @@ labels: {
 ...
 ```
 
+## Testing
+BATS Core is being used to test some of the swarm stack updaters functions. This hopefully ensures that main functionailly of the application is kept consistant as updates and changes are preformed to the tool. 
+
+### Running Tests
+All test code can be found under the test folder. In order to run tests ensure that submodules are pulled as per running locally.
+To run ensure that you have giving executible permissions to the **run_bats_tests.sh** file and run the file in a bash terminal by typing ```./run_bats_tests.sh```.
+
+### Creating New Tests
+New tests can be easly created by making a new .bats file labled with a short description of the tests to be preformed starting with **"test_"**. To ensure that all libraries are enabled including BATS mock start file with a **setup()** function containing the following:
+
+```
+setup() {
+    load 'test_helper/common-setup'
+    _common_setup
+
+    source ./src/swarm_stack_updater.sh
+}
+```
+
+This enables all of the libraries stored under **/test/test_helper** as well as passes all functions defined in the swarm stack updater for testing. From there define tests by typing:
+
+```
+@test '<Group of Tests> | <Description of Individual Test>' {
+    // Test Code
+    ...
+}
+
+```
+
+### More Information
+For more information on BATS core follow this link: https://github.com/bats-core/bats-core \
+For more information on BATS mock follow this link: https://github.com/buildkite-plugins/bats-mock \
+For more information on BATS assert follow this link: https://github.com/bats-core/bats-assert
+
+
+
 
