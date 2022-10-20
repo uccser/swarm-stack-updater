@@ -100,7 +100,7 @@ git submodule update --init
 ```
 3. Ensure that you have a configuration file created and have the requried environment varibles defined. To define environment varibles use the command ```export ENV_VAR=<value>```.
 
-4. Run the swarm updater by running the command ./src/swarm_stack_updater.sh. You may need to set to to be executible this can be done by typing the command ```chmod +x /src/swarm_stack_updater.sh```
+4. Run the swarm updater by running the command ```./src/swarm_stack_updater.sh.``` You may need to set to to be executible this can be done by typing the command ```chmod +x /src/swarm_stack_updater.sh```
 
 ### Testing
 BATS Core is being used to test some of the swarm stack updaters functions. This hopefully ensures that main functionailly of the application is kept consistant as updates and changes are preformed to the tool. 
