@@ -5,6 +5,7 @@ This tool has been specifically enginneered to find and update full stacks by do
 
 
 ## Requirements
+* Needs to be run in a docker swarm, this can either be locally or on a remove server.
 * The tool makes use of the Github API and Container Registry. You may have to update the script to work for other 
 repositories and container registries.
 * Website must have a status url that returns a JSON object that contains both 
@@ -89,15 +90,17 @@ secrets:
 
 The tool has been designed specifically to run using docker swarm or compose but it can be run locally if required. I have tryed my best to remove all issues when running locally but it may not be perfect.
 
-* First Clone the repository using following the command:
+1. Clone the repository using following the command:
 ```
 https://github.com/uccser/swarm-stack-updater.git
 ```
-* Then use the following command to pull BATS, which is used for automated testing:
+2. Use the following command to pull BATS, which is used for automated testing. This will pull all the required tools for running and creating tests for this application.
 ```
 git submodule update --init
 ```
-This will pull all the required tools for running and creating tests for this application.
+3. Ensure that you have a configuration file created and have the requried environment varibles defined. To define environment varibles use the command ```export ENV_VAR=<value>```.
+
+4. Run the swarm updater by running the command ./src/swarm_stack_updater.sh. You may need to set to to be executible this can be done by typing the command ```chmod +x /src/swarm_stack_updater.sh```
 
 ### Testing
 BATS Core is being used to test some of the swarm stack updaters functions. This hopefully ensures that main functionailly of the application is kept consistant as updates and changes are preformed to the tool. 
