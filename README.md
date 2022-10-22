@@ -11,7 +11,9 @@ Using Compose files means whole application stacks can be updated and can allow 
 * The tool makes use of the Github API and Container Registry.
   You may have to update the script to work for other repositories and container registries.
 * Website must have a status url that returns a JSON object that contains both SHA-1 commit hash and a tag version.
-  ```{"VERSION_NUMBER": "7.1.0", "GIT_SHA": "634d994d771fa23f65bc735bba32317ca71b374d"}```
+  ```
+  {"VERSION_NUMBER": "7.1.0", "GIT_SHA": "634d994d771fa23f65bc735bba32317ca71b374d"}
+  ```
 * Deployment requires [Swarm Cronjob](https://github.com/crazy-max/swarm-cronjob) running and deployed on the Swarm.
 * A secret is required for multiple GitHub requests (see the Compose file).
   This must be named ```github_access_token```.
@@ -20,7 +22,7 @@ Using Compose files means whole application stacks can be updated and can allow 
 * The Docker images must contain additional information in their manifest files.
   This is so the tool can identify whether a new image is available to download.
 
-Manifest JSON should contain at least:
+* Manifest JSON should contain at least:
 ```
 ...
 labels: {
