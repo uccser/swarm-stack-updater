@@ -11,7 +11,7 @@ Using Compose files means whole application stacks can be updated and can allow 
 * The tool makes use of the Github API and Container Registry.
   You may have to update the script to work for other repositories and container registries.
 * Website must have a status url that returns a JSON object that contains both SHA-1 commit hash and a tag version.
-  ```{"VERSION_NUMBER": "7.1.0", "GIT_SHA": "634d994d771fa23f65bc735bba32317ca71b374d"}`
+  ```{"VERSION_NUMBER": "7.1.0", "GIT_SHA": "634d994d771fa23f65bc735bba32317ca71b374d"}```
 * Deployment requires [Swarm Cronjob](https://github.com/crazy-max/swarm-cronjob) running and deployed on the Swarm.
 * A secret is required for multiple GitHub requests (see the Compose file).
   This must be named ```github_access_token```.
@@ -47,11 +47,22 @@ This should look something like this:
         user: <github_username>
 ```
 
-2. Next save that config file as "swarm_updater_config" and set it as a config file in your swarm, this can be done <br />
-by typing ```docker config create swarm_updater_config <path-to-file>``` or can be setup as part of step 3 in your deployment compose file.
+2. Next save that config file as "swarm_updater_config" and set it as a config file in your swarm, this can be done by typing the following command (or can be setup as part of step 3 in your deployment compose file). 
+```
+docker config create swarm_updater_config <path-to-file>
+```
 
 
-3. Deploy on your swarm swarm using Docker Compose. Make sure you include an env file if you need external varibles for deployment. Also to ensure that the tool can access Docker commands for your swarm add the volume ```/var/run/docker.sock:/var/run/docker.sock``` to give the tool access to the Docker daemon. 
+3. Deploy on your swarm swarm using Docker Compose. 
+* Make sure you include an env file if you need external varibles for deployment. 
+* To ensure that the tool can use docker commands add the volume ```/var/run/docker.sock:/var/run/docker.sock``` to give the tool access to the Docker daemon.
+* The following relates to [Swarm Cronjob](https://github.com/crazy-max/swarm-cronjob). Here the tool has been setup to run every 2 mins and will not re run if the tool is already running.
+```
+ labels:
+          - "swarm.cronjob.enable=true"
+          - "swarm.cronjob.schedule=*/2 * * * *" # Testing Update Every Minute
+          - "swarm.cronjob.skip-running=true"
+```
 
 An example of a compose file can be seen below:
 ```
