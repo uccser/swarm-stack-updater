@@ -56,7 +56,7 @@ docker config create swarm_updater_config <path-to-file>
 3. Deploy on your swarm swarm using Docker Compose. 
 * Make sure you include an env file if you need external varibles for deployment. 
 * To ensure that the tool can use docker commands add the volume ```/var/run/docker.sock:/var/run/docker.sock``` to give the tool access to the Docker daemon.
-* The following relates to [Swarm Cronjob](https://github.com/crazy-max/swarm-cronjob). Here the tool has been setup to run every 2 mins and will not re run if the tool is already running.
+* In order to configure [Swarm Cronjob](https://github.com/crazy-max/swarm-cronjob) Docker Labels are used. In the following the tool has been setup to run every 2 mins and will not re run if already running.
 ```
  labels:
           - "swarm.cronjob.enable=true"
@@ -64,7 +64,7 @@ docker config create swarm_updater_config <path-to-file>
           - "swarm.cronjob.skip-running=true"
 ```
 
-An example of a compose file can be seen below:
+An example of a full compose file to setup the Swarm Stack Updater can be seen below:
 ```
 version: '3.8'
 
