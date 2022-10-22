@@ -1,21 +1,24 @@
 # Swarm Stack Updater
 The Swarm Stack Updater an automated tool built in shell that can be run periodically on a Docker Swarm to search for and identify any out of date stacks. If any changes are found, this tool automatically downloads, updates, and redeploys software back onto the swarm.
 
-This tool has been specifically enginneered to find and update full stacks by downloading Docker Compose files from GitHub. This was after finding tools such as [Watchtower](https://github.com/containrrr/watchtower) or [Shepard](https://github.com/djmaze/shepherd) which only aimed to update individual Docker containers by updating images. Using Compose files means whole application stacks can be updated and can allow for configuration changes as well.  
+This tool has been specifically enginneered to find and update full Docker Stacks by downloading Docker Compose files from GitHub.
+This was after finding tools such as [Watchtower](https://github.com/containrrr/watchtower) or [Shepard](https://github.com/djmaze/shepherd) which only aimed to update individual Docker containers by updating images.
+Using Compose files means whole application stacks can be updated and can allow for configuration changes as well.  
 
 
 ## Requirements
-* Needs to be run in a docker swarm, this can either be locally or on a remove server.
-* The tool makes use of the Github API and Container Registry. You may have to update the script to work for other 
-repositories and container registries.
-* Website must have a status url that returns a JSON object that contains both 
-sha commit hash and a tag version.
-* ```{"VERSION_NUMBER": "3.10.0", "GIT_SHA": "a49a111d"}```
-* Deployment on swarm requires Swarm Cronjob running and deployed on swarm
-this can be found here https://github.com/crazy-max/swarm-cronjob
-* From the bottom of the compose file you can see that a secret is required. This should be a ```github_access_token``` to allow for multiple requests. More about docker secrets can be found here: https://docs.docker.com/engine/swarm/secrets/
+* Can only be run in a Docker Swarm.
+* The tool makes use of the Github API and Container Registry.
+  You may have to update the script to work for other repositories and container registries.
+* Website must have a status url that returns a JSON object that contains both SHA-1 commit hash and a tag version.
+  ```{"VERSION_NUMBER": "7.1.0", "GIT_SHA": "634d994d771fa23f65bc735bba32317ca71b374d"}`
+* Deployment requires [Swarm Cronjob](https://github.com/crazy-max/swarm-cronjob) running and deployed on the Swarm.
+* A secret is required for multiple GitHub requests (see the Compose file).
+  This must be named ```github_access_token```.
+  More about Docker Secrets can be found in the [Docker documentation](https://docs.docker.com/engine/swarm/secrets/).
 
-* Your docker images should also contain some extra information in their manifest files. This is so the app is able to identify whether a new image is available to download.
+* The Docker images must contain additional information in their manifest files.
+  This is so the tool can identify whether a new image is available to download.
 
 Manifest JSON should contain at least:
 ```
@@ -25,10 +28,12 @@ labels: {
 }
 ...
 ```
+An [example is available within the CS Unplugged repostiory](https://github.com/uccser/cs-unplugged/blob/develop/infrastructure/production/django/Dockerfile#L28-L36).
 
 ## Deployment:
 
-1. First create a config file so that the Swarm Stack Updater is able to recognise what it needs to update. This should contain the stack's name, whether you are deploying the tool in a development environment, the websites url that you are updating as well as some repository information.
+1. First create a config file so that the Swarm Stack Updater is able to recognise what it needs to update.
+  This should contain the stack's name, whether you are deploying the tool in a development environment, the websites url that you are updating as well as some repository information.
 
 This should look something like this:
 ```
@@ -94,13 +99,15 @@ The tool has been designed specifically to run using docker swarm or compose but
 ```
 https://github.com/uccser/swarm-stack-updater.git
 ```
-2. Use the following command to pull BATS, which is used for automated testing. This will pull all the required tools for running and creating tests for this application.
+2. Use the following command to pull BATS, which is used for automated testing.
+  This will pull all the required tools for running and creating tests for this application.
 ```
 git submodule update --init
 ```
 3. Ensure that you have a configuration file created and have the requried environment varibles defined. To define environment varibles use the command ```export ENV_VAR=<value>```.
 
-4. Run the swarm updater by running the command ```./src/swarm_stack_updater.sh.``` You may need to set to to be executible this can be done by typing the command ```chmod +x /src/swarm_stack_updater.sh```
+4. Run the swarm updater by running the command ```./src/swarm_stack_updater.sh```.
+  You may need to set to to be executible this can be done by typing the command ```chmod +x /src/swarm_stack_updater.sh```
 
 ### Testing
 BATS Core is being used to test some of the swarm stack updaters functions. This hopefully ensures that main functionailly of the application is kept consistant as updates and changes are preformed to the tool. 
