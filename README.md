@@ -1,7 +1,7 @@
 # Swarm Stack Updater
 The Swarm Stack Updater an automated tool built in shell that can be run periodically on a Docker Swarm to search for and identify any out of date stacks. If any changes are found, this tool automatically downloads, updates, and redeploys software back onto the swarm.
 
-This tool has been specifically enginneered to find and update full Docker Stacks by downloading Docker Compose files from GitHub.
+This tool has been specifically engineered to find and update full Docker Stacks by downloading Docker Compose files from GitHub.
 This was after finding tools such as [Watchtower](https://github.com/containrrr/watchtower) or [Shepard](https://github.com/djmaze/shepherd) which only aimed to update individual Docker containers by updating images.
 Using Compose files means whole application stacks can be updated and can allow for configuration changes as well.  
 
@@ -30,7 +30,7 @@ labels: {
 }
 ...
 ```
-An [example is available within the CS Unplugged repostiory](https://github.com/uccser/cs-unplugged/blob/develop/infrastructure/production/django/Dockerfile#L28-L36).
+An [example is available within the CS Unplugged repository](https://github.com/uccser/cs-unplugged/blob/develop/infrastructure/production/django/Dockerfile#L28-L36).
 
 ## Deployment:
 
@@ -119,8 +119,14 @@ git submodule update --init
 ```
 3. Ensure that you have a configuration file created and have the requried environment varibles defined. To define environment varibles use the command ```export ENV_VAR=<value>```.
 
-4. Run the swarm updater by running the command ```./src/swarm_stack_updater.sh```.
-  You may need to set to to be executible this can be done by typing the command ```chmod +x /src/swarm_stack_updater.sh```
+4. Run the swarm updater by running the command 
+```
+./src/swarm_stack_updater.sh
+```
+You may need to set to to be executible this can be done by typing the command 
+```
+chmod +x /src/swarm_stack_updater.sh
+```
 
 ### Testing
 BATS Core is being used to test some of the swarm stack updaters functions. This hopefully ensures that main functionailly of the application is kept consistant as updates and changes are preformed to the tool. 
